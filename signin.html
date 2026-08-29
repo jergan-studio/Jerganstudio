@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Sign in to your Jergan Studio account.">
+  <meta name="theme-color" content="#f7f7f8">
+  <title>Sign in — Jergan Studio</title>
+  <style>
+    :root{font-family:Arial,Helvetica,sans-serif;color:#1b1b1f;background:#f7f7f8}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,#f7f7f8,#ececf0)}.page{width:100%;max-width:440px}.logo{text-align:center;font-size:22px;font-weight:700;letter-spacing:-.03em;margin-bottom:28px}.logo-mark{display:inline-grid;place-items:center;width:34px;height:34px;margin-right:8px;border-radius:50%;background:#111;color:#fff;font-size:20px;vertical-align:middle}.card{background:#fff;border:1px solid #dedee3;border-radius:8px;padding:42px 44px;box-shadow:0 6px 24px rgba(0,0,0,.08)}h1{font-size:30px;line-height:1.2;margin:0 0 8px;letter-spacing:-.04em} .sub{color:#5f6068;font-size:14px;line-height:1.5;margin:0 0 30px}.auth-btn{width:100%;min-height:48px;border-radius:4px;border:1px solid #8b8c92;background:#fff;color:#1b1b1f;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:12px;font-size:15px;font-weight:600;transition:.15s}.auth-btn:hover{background:#f5f5f6;border-color:#5f6068}.auth-btn.primary{background:#111;color:#fff;border-color:#111}.auth-btn.primary:hover{background:#29292d}.mark{width:20px;height:20px;display:grid;place-items:center;font-weight:800}.divider{display:flex;align-items:center;gap:12px;margin:24px 0;color:#777983;font-size:12px}.divider:before,.divider:after{content:"";height:1px;background:#dddde2;flex:1}.providers{display:grid;gap:10px}.note{font-size:12px;color:#777983;text-align:center;line-height:1.5;margin:24px 0 0}.register{margin-top:25px;text-align:center;font-size:14px;color:#5f6068}.register a{color:#111;font-weight:700;text-decoration:none}.register a:hover{text-decoration:underline}.back{display:block;text-align:center;margin-top:22px;color:#666871;text-decoration:none;font-size:13px}.back:hover{color:#111}@media(max-width:500px){.card{padding:34px 24px}body{padding:14px}}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="logo"><span class="logo-mark">◐</span>Jergan Studio</div>
+    <section class="card" aria-labelledby="title">
+      <h1 id="title">Sign in</h1>
+      <p class="sub">Use your Jergan Studio account to continue.</p>
+
+      <a class="auth-btn primary" href="https://www.authpro.com/auth/Jergan/">
+        <span class="mark">→</span> Continue with Jergan
+      </a>
+
+      <div class="divider"><span>OR</span></div>
+
+      <div class="providers">
+        <button class="auth-btn" type="button" disabled title="Google sign-in is not configured yet"><span class="mark">G</span> Continue with Google</button>
+        <button class="auth-btn" type="button" disabled title="Microsoft sign-in is not configured yet"><span class="mark">▦</span> Continue with Microsoft</button>
+      </div>
+
+      <p class="note">Google and Microsoft sign-in will become available when those providers are configured for Jergan Studio.</p>
+      <p class="register">New to Jergan Studio? <a href="https://www.authpro.com/auth/Jergan/?action=reg">Create an account</a></p>
+    </section>
+    <a class="back" href="index.html">← Back to Jergan Studio</a>
+  </main>
+</body>
+</html>
