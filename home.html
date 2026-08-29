@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jergan Studio — Home</title>
+  <meta name="description" content="Your Jergan Studio member home.">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .member-page{min-height:100vh;padding:120px 7vw 70px}
+    .member-wrap{max-width:1200px;margin:auto}
+    .member-top{display:flex;justify-content:space-between;align-items:center;gap:30px;margin-bottom:55px}
+    .member-title{font-size:clamp(48px,7vw,92px);font-family:'Space Grotesk',sans-serif;letter-spacing:-.06em;line-height:1}
+    .member-sub{color:var(--muted);max-width:620px;margin-top:18px;font-size:17px}
+    .profile{display:flex;align-items:center;gap:12px;padding:9px 14px;border:1px solid var(--line);border-radius:999px}
+    .avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--accentText);font-weight:700}
+    .dashboard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .dash-card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:28px;min-height:210px;transition:.25s}
+    .dash-card:hover{transform:translateY(-4px)}
+    .dash-card h2{font-size:30px;margin:30px 0 10px}
+    .dash-card p{color:var(--muted);margin:0}
+    .dash-icon{width:50px;height:50px;border:1px solid var(--line);border-radius:14px;display:grid;place-items:center;font-weight:700}
+    .member-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
+    .auth-note{margin-top:40px;padding:20px;border:1px dashed var(--line);border-radius:16px;color:var(--muted);font-size:13px}
+    @media(max-width:850px){.dashboard-grid{grid-template-columns:1fr}.member-top{align-items:flex-start;flex-direction:column}.profile{align-self:flex-start}}
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+  <nav class="nav" id="nav">
+    <a class="brand" href="index.html"><span class="eclipse">◐</span> Jergan Studio</a>
+    <div class="desktop-nav">
+      <a href="index.html">Home</a>
+      <a href="#products">Products</a>
+      <a href="#projects">Projects</a>
+      <a href="https://github.com/jergan-studio">GitHub</a>
+    </div>
+    <div class="nav-actions">
+      <button class="icon-button" id="themeToggle" aria-label="Toggle theme">☼</button>
+      <button class="menu-button" id="menuToggle" aria-label="Open menu">☰</button>
+    </div>
+  </nav>
+
+  <main class="member-page">
+    <div class="member-wrap">
+      <section class="member-top reveal">
+        <div>
+          <div class="eyebrow"><span></span> MEMBER AREA</div>
+          <h1 class="member-title">Welcome, <span id="memberLogin">Jergan Creator</span>.</h1>
+          <p class="member-sub">This is your Jergan Studio home. Access your projects, developer tools, and the growing Jergan ecosystem from one place.</p>
+          <div class="member-actions">
+            <a class="button primary" href="#products">Explore products <span>↗</span></a>
+            <a class="button secondary" href="index.html">Public site <span>↗</span></a>
+          </div>
+        </div>
+        <div class="profile">
+          <div class="avatar" id="avatar">J</div>
+          <div>
+            <strong id="memberName">Jergan Creator</strong><br>
+            <small id="memberEmail" style="color:var(--muted)">Member</small>
+          </div>
+        </div>
+      </section>
+
+      <section id="products" class="dashboard-grid reveal">
+        <a class="dash-card" href="#">
+          <div class="dash-icon">E</div>
+          <h2>Eclipse</h2>
+          <p>Explore Jergan Studio's scripting and development ecosystem.</p>
+        </a>
+        <a class="dash-card" href="#">
+          <div class="dash-icon">ESC</div>
+          <h2>ESC</h2>
+          <p>Create scripts and games with the Eclipse scripting language.</p>
+        </a>
+        <a class="dash-card" href="#">
+          <div class="dash-icon">B</div>
+          <h2>Basedex</h2>
+          <p>Launch and organize your development applications.</p>
+        </a>
+        <a class="dash-card" href="#">
+          <div class="dash-icon">J</div>
+          <h2>Jref</h2>
+          <p>Explore the Jergan browser and web technology projects.</p>
+        </a>
+        <a class="dash-card" href="#">
+          <div class="dash-icon">AI</div>
+          <h2>JergAI</h2>
+          <p>Discover Jergan Studio's AI-powered development experiments.</p>
+        </a>
+        <a class="dash-card" href="#projects">
+          <div class="dash-icon">+</div>
+          <h2>Your Projects</h2>
+          <p>Connect this area to your own Jergan Studio projects.</p>
+        </a>
+      </section>
+
+      <section id="projects" class="section" style="padding-left:0;padding-right:0">
+        <div class="section-head reveal">
+          <div><div class="section-label">DEVELOPER AREA</div><h2>Build something.</h2></div>
+        </div>
+        <div class="auth-note reveal">
+          <strong>AuthPro integration:</strong> this page is ready for AuthPro's member protection script. Add the protection code supplied by your AuthPro account manager to protect this page. AuthPro can expose the logged-in member's <code>login</code> and <code>email</code> JavaScript variables, which this page can display.
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const root=document.documentElement;
+    const themeToggle=document.getElementById('themeToggle');
+    const saved=localStorage.getItem('jergan-theme');
+    if(saved) root.dataset.theme=saved;
+    themeToggle?.addEventListener('click',()=>{
+      const next=root.dataset.theme==='light'?'dark':'light';
+      root.dataset.theme=next;
+      localStorage.setItem('jergan-theme',next);
+    });
+    const menuToggle=document.getElementById('menuToggle');
+    const navLinks=document.querySelector('.desktop-nav');
+    menuToggle?.addEventListener('click',()=>navLinks?.classList.toggle('mobile-open'));
+    window.addEventListener('scroll',()=>{
+      document.getElementById('nav')?.classList.toggle('scrolled',scrollY>20);
+      const max=document.documentElement.scrollHeight-innerHeight;
+      document.getElementById('progress').style.width=(max>0?(scrollY/max)*100:0)+'%';
+    });
+    const loginEl=document.getElementById('memberLogin');
+    const nameEl=document.getElementById('memberName');
+    const emailEl=document.getElementById('memberEmail');
+    const avatar=document.getElementById('avatar');
+    if(typeof login!=='undefined'){
+      loginEl.textContent=login;
+      nameEl.textContent=login;
+      avatar.textContent=login.charAt(0).toUpperCase();
+    }
+    if(typeof email!=='undefined') emailEl.textContent=email;
+    const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')}),{threshold:.12});
+    document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+  </script>
+
+  <!-- AUTHPro page protection code goes here.
+       Replace YOUR_ACCOUNT with your AuthPro account username.
+       AuthPro supplies the exact protection snippet in its Account Manager. -->
+  <!-- <script src="https://www.authpro.com/cgi-bin/auth.fcgi?user=YOUR_ACCOUNT&action=pp&get_profile=1"></script> -->
+</body>
+</html>
