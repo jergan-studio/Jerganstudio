@@ -15,7 +15,7 @@
     <div class="logo"><span class="logo-mark">◐</span>Jergan Studio</div>
     <section class="card" aria-labelledby="title">
       <h1 id="title">Sign in</h1>
-      <p class="sub">Use your Jergan Studio account to continue.</p>
+      <p class="sub" id="subtitle">Use your Jergan Studio account to continue.</p>
 
       <p class="error" id="error" role="alert"></p>
 
@@ -48,12 +48,38 @@
 
   <script>
     const API_URL = 'https://jerganstudio.onrender.com';
+    const params = new URLSearchParams(window.location.search);
+    const site = params.get('site') || 'jergan';
     const form = document.getElementById('loginForm');
     const button = document.getElementById('loginButton');
     const error = document.getElementById('error');
+    const subtitle = document.getElementById('subtitle');
+
+    let client = null;
+
+    function showError(message) {
+      error.textContent = message;
+      error.style.display = 'block';
+    }
+
+    async function loadClient() {
+      try {
+        const response = await fetch(`${API_URL}/api/oauth/client?site=${encodeURIComponent(site)}`);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) throw new Error(data.error || 'This Jergan application is not registered.');
+        client = data;
+        if (site !== 'jergan') subtitle.textContent = `Sign in to continue to ${client.name}.`;
+      } catch (err) {
+        form.style.display = 'none';
+        document.querySelector('.providers').style.display = 'none';
+        document.querySelector('.divider').style.display = 'none';
+        showError(err.message || 'Unknown Jergan application.');
+      }
+    }
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (!client) return;
       error.style.display = 'none';
       button.disabled = true;
       button.querySelector('.mark').textContent = '…';
@@ -65,24 +91,32 @@
         const response = await fetch(`${API_URL}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ login, password })
+          body: JSON.stringify({ login, password, site })
         });
 
         const data = await response.json().catch(() => ({}));
-        if (!response.ok || !data.ok || !data.token) {
-          throw new Error(data.error || 'Unable to sign in.');
+        if (!response.ok || !data.ok || !data.token) throw new Error(data.error || 'Unable to sign in.');
+
+        // The Jergan Studio client keeps its token locally.
+        // Other registered clients receive the token through their registered HTTPS callback.
+        if (site === 'jergan') {
+          sessionStorage.setItem('jergan_token', data.token);
+          sessionStorage.setItem('jergan_user', JSON.stringify(data.user || { login }));
+          window.location.href = 'home.html';
+          return;
         }
 
-        sessionStorage.setItem('jergan_token', data.token);
-        sessionStorage.setItem('jergan_user', JSON.stringify(data.user || { login }));
-        window.location.href = 'home.html';
+        const redirect = new URL(data.client.redirect_uri);
+        redirect.searchParams.set('code', data.token);
+        window.location.href = redirect.toString();
       } catch (err) {
-        error.textContent = err.message || 'Unable to connect to the Jergan account server.';
-        error.style.display = 'block';
+        showError(err.message || 'Unable to connect to the Jergan account server.');
         button.disabled = false;
         button.querySelector('.mark').textContent = '→';
       }
     });
+
+    loadClient();
   </script>
 </body>
 </html>
