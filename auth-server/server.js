@@ -15,6 +15,30 @@ const AUTH_PRO_API_KEY = process.env.AUTHPRO_API_KEY;
 const JWT_SECRET = process.env.JWT_SECRET;
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').map(v => v.trim()).filter(Boolean);
 
+/*
+ * Registered Jergan OAuth clients.
+ * Add clients in Render with JERGAN_OAUTH_CLIENTS as JSON, for example:
+ * {"eclipse":{"name":"Eclipse","redirect_uri":"https://example.com/callback"}}
+ * Never accept an arbitrary redirect_uri from the browser.
+ */
+const DEFAULT_CLIENTS = {
+  jergan: {
+    name: 'Jergan Studio',
+    redirect_uri: 'https://jerganstudio.vercel.app/home.html'
+  }
+};
+
+let OAUTH_CLIENTS = DEFAULT_CLIENTS;
+try {
+  if (process.env.JERGAN_OAUTH_CLIENTS) {
+    const parsed = JSON.parse(process.env.JERGAN_OAUTH_CLIENTS);
+    if (parsed && typeof parsed === 'object') OAUTH_CLIENTS = parsed;
+  }
+} catch (error) {
+  console.error('Invalid JERGAN_OAUTH_CLIENTS JSON:', error.message);
+  process.exit(1);
+}
+
 if (!AUTH_PRO_API_KEY || !JWT_SECRET) {
   console.error('Missing AUTHPRO_API_KEY or JWT_SECRET. Copy .env.example to .env and configure both.');
   process.exit(1);
@@ -38,9 +62,16 @@ const loginLimiter = rateLimit({
   message: { error: 'Too many login attempts. Try again later.' }
 });
 
-function issueToken(member) {
+function getClient(clientId) {
+  if (typeof clientId !== 'string' || !clientId) return null;
+  const client = OAUTH_CLIENTS[clientId];
+  if (!client || typeof client.redirect_uri !== 'string' || !client.redirect_uri.startsWith('https://')) return null;
+  return client;
+}
+
+function issueToken(member, clientId) {
   return jwt.sign(
-    { sub: member.login, email: member.email, provider: 'authpro' },
+    { sub: member.login, email: member.email, provider: 'authpro', client_id: clientId },
     JWT_SECRET,
     { issuer: 'jergan-studio', audience: 'jergan-apps', expiresIn: '7d', jwtid: crypto.randomUUID() }
   );
@@ -89,10 +120,26 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'jergan-account', provider: 'AuthPro' });
 });
 
+// Lets the sign-in page check whether ?site=<client_id> is registered.
+app.get('/api/oauth/client', (req, res) => {
+  const clientId = typeof req.query.site === 'string' ? req.query.site : '';
+  const client = getClient(clientId);
+  if (!client) return res.status(404).json({ ok: false, error: 'Unknown Jergan application.' });
+
+  res.json({
+    ok: true,
+    client_id: clientId,
+    name: client.name || clientId
+  });
+});
+
 app.post('/api/auth/login', loginLimiter, async (req, res) => {
   const login = typeof req.body.login === 'string' ? req.body.login.trim() : '';
   const password = typeof req.body.password === 'string' ? req.body.password : '';
+  const clientId = typeof req.body.site === 'string' ? req.body.site.trim() : 'jergan';
+  const client = getClient(clientId);
 
+  if (!client) return res.status(400).json({ error: 'Unknown or unregistered Jergan application.' });
   if (!login || !password) return res.status(400).json({ error: 'Login and password are required.' });
 
   try {
@@ -101,12 +148,13 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
 
     const member = await findMember(login);
     const profile = { login, email: member?.email || '' };
-    const token = issueToken(profile);
+    const token = issueToken(profile, clientId);
 
     res.json({
       ok: true,
       token,
       user: profile,
+      client: { id: clientId, name: client.name || clientId, redirect_uri: client.redirect_uri },
       expiresIn: 604800
     });
   } catch (error) {
@@ -136,6 +184,6 @@ app.post('/api/auth/verify', authenticate, (_req, res) => {
   res.json({ ok: true, valid: true });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Jergan Account server listening on port ${PORT}`);
 });
