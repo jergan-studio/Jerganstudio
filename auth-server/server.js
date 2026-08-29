@@ -13,18 +13,22 @@ const PORT = Number(process.env.PORT || 3000);
 const AUTH_PRO_USER = process.env.AUTHPRO_USER || 'Jergan';
 const AUTH_PRO_API_KEY = process.env.AUTHPRO_API_KEY;
 const JWT_SECRET = process.env.JWT_SECRET;
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').map(v => v.trim()).filter(Boolean);
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map(v => v.trim())
+  .filter(Boolean);
 
-/*
- * Registered Jergan OAuth clients.
- * Add clients in Render with JERGAN_OAUTH_CLIENTS as JSON, for example:
- * {"eclipse":{"name":"Eclipse","redirect_uri":"https://example.com/callback"}}
- * Never accept an arbitrary redirect_uri from the browser.
- */
+/* Registered Jergan OAuth clients. */
 const DEFAULT_CLIENTS = {
   jergan: {
     name: 'Jergan Studio',
-    redirect_uri: 'https://jerganstudio.vercel.app/home.html'
+    redirect_uri: 'https://jerganstudio.vercel.app/home.html',
+    origin: 'https://jerganstudio.vercel.app'
+  },
+  jref: {
+    name: 'Jref',
+    redirect_uri: 'https://jref-theta.vercel.app/home.html',
+    origin: 'https://jref-theta.vercel.app'
   }
 };
 
@@ -32,7 +36,9 @@ let OAUTH_CLIENTS = DEFAULT_CLIENTS;
 try {
   if (process.env.JERGAN_OAUTH_CLIENTS) {
     const parsed = JSON.parse(process.env.JERGAN_OAUTH_CLIENTS);
-    if (parsed && typeof parsed === 'object') OAUTH_CLIENTS = parsed;
+    if (parsed && typeof parsed === 'object') {
+      OAUTH_CLIENTS = { ...DEFAULT_CLIENTS, ...parsed };
+    }
   }
 } catch (error) {
   console.error('Invalid JERGAN_OAUTH_CLIENTS JSON:', error.message);
@@ -40,7 +46,7 @@ try {
 }
 
 if (!AUTH_PRO_API_KEY || !JWT_SECRET) {
-  console.error('Missing AUTHPRO_API_KEY or JWT_SECRET. Copy .env.example to .env and configure both.');
+  console.error('Missing AUTHPRO_API_KEY or JWT_SECRET. Configure both in Render.');
   process.exit(1);
 }
 
@@ -48,7 +54,9 @@ app.use(helmet());
 app.use(express.json({ limit: '20kb' }));
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    if (!origin || ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
     return callback(new Error('Origin not allowed'));
   },
   credentials: false
@@ -71,9 +79,19 @@ function getClient(clientId) {
 
 function issueToken(member, clientId) {
   return jwt.sign(
-    { sub: member.login, email: member.email, provider: 'authpro', client_id: clientId },
+    {
+      sub: member.login,
+      email: member.email,
+      provider: 'authpro',
+      client_id: clientId
+    },
     JWT_SECRET,
-    { issuer: 'jergan-studio', audience: 'jergan-apps', expiresIn: '7d', jwtid: crypto.randomUUID() }
+    {
+      issuer: 'jergan-studio',
+      audience: 'jergan-apps',
+      expiresIn: '7d',
+      jwtid: crypto.randomUUID()
+    }
   );
 }
 
@@ -120,16 +138,23 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'jergan-account', provider: 'AuthPro' });
 });
 
-// Lets the sign-in page check whether ?site=<client_id> is registered.
+// Check whether ?site=<client_id> is a registered Jergan application.
 app.get('/api/oauth/client', (req, res) => {
-  const clientId = typeof req.query.site === 'string' ? req.query.site : '';
+  const clientId = typeof req.query.site === 'string' ? req.query.site.trim() : '';
   const client = getClient(clientId);
-  if (!client) return res.status(404).json({ ok: false, error: 'Unknown Jergan application.' });
+
+  if (!client) {
+    return res.status(404).json({
+      ok: false,
+      error: 'Unknown Jergan application.'
+    });
+  }
 
   res.json({
     ok: true,
     client_id: clientId,
-    name: client.name || clientId
+    name: client.name || clientId,
+    redirect_uri: client.redirect_uri
   });
 });
 
@@ -139,12 +164,19 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
   const clientId = typeof req.body.site === 'string' ? req.body.site.trim() : 'jergan';
   const client = getClient(clientId);
 
-  if (!client) return res.status(400).json({ error: 'Unknown or unregistered Jergan application.' });
-  if (!login || !password) return res.status(400).json({ error: 'Login and password are required.' });
+  if (!client) {
+    return res.status(400).json({ error: 'Unknown or unregistered Jergan application.' });
+  }
+
+  if (!login || !password) {
+    return res.status(400).json({ error: 'Login and password are required.' });
+  }
 
   try {
     const result = await verifyWithAuthPro(login, password, req.ip);
-    if (result.result !== 'OK') return res.status(401).json({ error: result.message || 'Invalid login.' });
+    if (result.result !== 'OK') {
+      return res.status(401).json({ error: result.message || 'Invalid login.' });
+    }
 
     const member = await findMember(login);
     const profile = { login, email: member?.email || '' };
@@ -154,7 +186,11 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
       ok: true,
       token,
       user: profile,
-      client: { id: clientId, name: client.name || clientId, redirect_uri: client.redirect_uri },
+      client: {
+        id: clientId,
+        name: client.name || clientId,
+        redirect_uri: client.redirect_uri
+      },
       expiresIn: 604800
     });
   } catch (error) {
@@ -166,10 +202,14 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
 function authenticate(req, res, next) {
   const header = req.get('authorization') || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+
   if (!token) return res.status(401).json({ error: 'Missing Bearer token.' });
 
   try {
-    req.user = jwt.verify(token, JWT_SECRET, { issuer: 'jergan-studio', audience: 'jergan-apps' });
+    req.user = jwt.verify(token, JWT_SECRET, {
+      issuer: 'jergan-studio',
+      audience: 'jergan-apps'
+    });
     next();
   } catch {
     return res.status(401).json({ error: 'Invalid or expired token.' });
@@ -177,7 +217,14 @@ function authenticate(req, res, next) {
 }
 
 app.get('/api/auth/me', authenticate, (req, res) => {
-  res.json({ ok: true, user: { login: req.user.sub, email: req.user.email } });
+  res.json({
+    ok: true,
+    user: {
+      login: req.user.sub,
+      email: req.user.email,
+      client_id: req.user.client_id
+    }
+  });
 });
 
 app.post('/api/auth/verify', authenticate, (_req, res) => {
