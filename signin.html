@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#f7f7f8">
   <title>Sign in — Jergan Studio</title>
   <style>
-    :root{font-family:Arial,Helvetica,sans-serif;color:#1b1b1f;background:#f7f7f8}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,#f7f7f8,#ececf0)}.page{width:100%;max-width:440px}.logo{text-align:center;font-size:22px;font-weight:700;letter-spacing:-.03em;margin-bottom:28px}.logo-mark{display:inline-grid;place-items:center;width:34px;height:34px;margin-right:8px;border-radius:50%;background:#111;color:#fff;font-size:20px;vertical-align:middle}.card{background:#fff;border:1px solid #dedee3;border-radius:8px;padding:42px 44px;box-shadow:0 6px 24px rgba(0,0,0,.08)}h1{font-size:30px;line-height:1.2;margin:0 0 8px;letter-spacing:-.04em} .sub{color:#5f6068;font-size:14px;line-height:1.5;margin:0 0 30px}.auth-btn{width:100%;min-height:48px;border-radius:4px;border:1px solid #8b8c92;background:#fff;color:#1b1b1f;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:12px;font-size:15px;font-weight:600;transition:.15s}.auth-btn:hover{background:#f5f5f6;border-color:#5f6068}.auth-btn.primary{background:#111;color:#fff;border-color:#111}.auth-btn.primary:hover{background:#29292d}.mark{width:20px;height:20px;display:grid;place-items:center;font-weight:800}.divider{display:flex;align-items:center;gap:12px;margin:24px 0;color:#777983;font-size:12px}.divider:before,.divider:after{content:"";height:1px;background:#dddde2;flex:1}.providers{display:grid;gap:10px}.note{font-size:12px;color:#777983;text-align:center;line-height:1.5;margin:24px 0 0}.register{margin-top:25px;text-align:center;font-size:14px;color:#5f6068}.register a{color:#111;font-weight:700;text-decoration:none}.register a:hover{text-decoration:underline}.back{display:block;text-align:center;margin-top:22px;color:#666871;text-decoration:none;font-size:13px}.back:hover{color:#111}@media(max-width:500px){.card{padding:34px 24px}body{padding:14px}}
+    :root{font-family:Arial,Helvetica,sans-serif;color:#1b1b1f;background:#f7f7f8}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,#f7f7f8,#ececf0)}.page{width:100%;max-width:440px}.logo{text-align:center;font-size:22px;font-weight:700;letter-spacing:-.03em;margin-bottom:28px}.logo-mark{display:inline-grid;place-items:center;width:34px;height:34px;margin-right:8px;border-radius:50%;background:#111;color:#fff;font-size:20px;vertical-align:middle}.card{background:#fff;border:1px solid #dedee3;border-radius:8px;padding:42px 44px;box-shadow:0 6px 24px rgba(0,0,0,.08)}h1{font-size:30px;line-height:1.2;margin:0 0 8px;letter-spacing:-.04em}.sub{color:#5f6068;font-size:14px;line-height:1.5;margin:0 0 30px}.field{display:grid;gap:7px;margin-bottom:14px}.field label{font-size:13px;font-weight:600}.field input{width:100%;min-height:46px;border:1px solid #bfc0c6;border-radius:4px;padding:0 12px;font-size:15px;outline:none}.field input:focus{border-color:#111;box-shadow:0 0 0 2px rgba(0,0,0,.08)}.auth-btn{width:100%;min-height:48px;border-radius:4px;border:1px solid #8b8c92;background:#fff;color:#1b1b1f;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:12px;font-size:15px;font-weight:600;transition:.15s;cursor:pointer}.auth-btn:hover{background:#f5f5f6;border-color:#5f6068}.auth-btn.primary{background:#111;color:#fff;border-color:#111}.auth-btn.primary:hover{background:#29292d}.auth-btn:disabled{opacity:.6;cursor:not-allowed}.mark{width:20px;height:20px;display:grid;place-items:center;font-weight:800}.divider{display:flex;align-items:center;gap:12px;margin:24px 0;color:#777983;font-size:12px}.divider:before,.divider:after{content:"";height:1px;background:#dddde2;flex:1}.providers{display:grid;gap:10px}.note{font-size:12px;color:#777983;text-align:center;line-height:1.5;margin:24px 0 0}.error{display:none;margin:0 0 16px;padding:10px 12px;border-radius:4px;background:#fff0f0;border:1px solid #f0b7b7;color:#9a2222;font-size:13px;line-height:1.4}.register{margin-top:25px;text-align:center;font-size:14px;color:#5f6068}.register a{color:#111;font-weight:700;text-decoration:none}.register a:hover{text-decoration:underline}.back{display:block;text-align:center;margin-top:22px;color:#666871;text-decoration:none;font-size:13px}.back:hover{color:#111}@media(max-width:500px){.card{padding:34px 24px}body{padding:14px}}
   </style>
 </head>
 <body>
@@ -17,21 +17,72 @@
       <h1 id="title">Sign in</h1>
       <p class="sub">Use your Jergan Studio account to continue.</p>
 
-      <a class="auth-btn primary" href="https://www.authpro.com/auth/Jergan/">
-        <span class="mark">→</span> Continue with Jergan
-      </a>
+      <p class="error" id="error" role="alert"></p>
+
+      <form id="loginForm">
+        <div class="field">
+          <label for="login">Username</label>
+          <input id="login" name="login" type="text" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="auth-btn primary" id="loginButton" type="submit">
+          <span class="mark">→</span> Sign in with Jergan
+        </button>
+      </form>
 
       <div class="divider"><span>OR</span></div>
 
       <div class="providers">
-        <button class="auth-btn" type="button" disabled title="Google sign-in is not configured yet"><span class="mark">G</span> Continue with Google</button>
-        <button class="auth-btn" type="button" disabled title="Microsoft sign-in is not configured yet"><span class="mark">▦</span> Continue with Microsoft</button>
+        <button class="auth-btn" type="button" disabled><span class="mark">G</span> Continue with Google</button>
+        <button class="auth-btn" type="button" disabled><span class="mark">▦</span> Continue with Microsoft</button>
       </div>
 
-      <p class="note">Google and Microsoft sign-in will become available when those providers are configured for Jergan Studio.</p>
+      <p class="note">Your login is securely checked by the Jergan account server.</p>
       <p class="register">New to Jergan Studio? <a href="https://www.authpro.com/auth/Jergan/?action=reg">Create an account</a></p>
     </section>
     <a class="back" href="index.html">← Back to Jergan Studio</a>
   </main>
+
+  <script>
+    const API_URL = 'https://jerganstudio.onrender.com';
+    const form = document.getElementById('loginForm');
+    const button = document.getElementById('loginButton');
+    const error = document.getElementById('error');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      error.style.display = 'none';
+      button.disabled = true;
+      button.querySelector('.mark').textContent = '…';
+
+      const login = document.getElementById('login').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        const response = await fetch(`${API_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ login, password })
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok || !data.token) {
+          throw new Error(data.error || 'Unable to sign in.');
+        }
+
+        sessionStorage.setItem('jergan_token', data.token);
+        sessionStorage.setItem('jergan_user', JSON.stringify(data.user || { login }));
+        window.location.href = 'home.html';
+      } catch (err) {
+        error.textContent = err.message || 'Unable to connect to the Jergan account server.';
+        error.style.display = 'block';
+        button.disabled = false;
+        button.querySelector('.mark').textContent = '→';
+      }
+    });
+  </script>
 </body>
 </html>
